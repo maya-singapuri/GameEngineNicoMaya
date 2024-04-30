@@ -61,7 +61,8 @@ const ENEMY: [SheetRegion; 4] = [
 
 const HEART: SheetRegion = SheetRegion::rect(525, 35, 8, 8);
 
-const SOUVENIR: SheetRegion = SheetRegion::new(0, 699, 193, 0, 13, 11);
+// const SOUVENIR: SheetRegion = SheetRegion::rect(699, 193, 13, 11);
+const SOUVENIR: SheetRegion = SheetRegion::rect(525, 10, 8, 8);
 
 impl Dir {
     fn to_vec2(self) -> Vec2 {
@@ -252,11 +253,11 @@ impl Game {
                 alive: true,
             },
             camera,
-            // souvenirs: vec![],
-            souvenirs: vec![
-                Vec2{ x: 1.0, y: 2.0 },
-                Vec2 { x: 3.0, y: 4.0 },
-            ],
+            souvenirs: vec![],
+            // souvenirs: vec![
+            //     Vec2{ x: 1.0, y: 2.0 },
+            //     Vec2 { x: 3.0, y: 4.0 },
+            // ],
             score: 0,
         };
         game.enter_level(player_start);
@@ -285,30 +286,32 @@ impl Game {
             }
         }
     }
-    fn spawn_gold(&mut self, mut gold_count: i32) {
+    fn spawn_gold(&mut self, gold_count: i32) {
+        // println!("Spawning {} golds", gold_count);
         let open_spaces = self.level().get_open_spaces();
-        // let open_spaces = self.level.get_open_spaces();
         let mut rng = rand::thread_rng();
-
-        // Filter open spaces to exclude those occupied by enemies or the player
+    
         let available_spaces: Vec<_> = open_spaces
             .into_iter()
-            .filter(|pos| {
-                self.player.pos != Vec2 { x: pos.0 as f32, y: pos.1 as f32 }
-            })
+            .filter(|pos| !self.enemies.iter().any(|e| Vec2 { x: pos.0 as f32, y: pos.1 as f32 } == e.pos) && self.player.pos != Vec2 { x: pos.0 as f32, y: pos.1 as f32 })
             .collect();
-
-        gold_count = 50;
-        // Randomly choose locations from available spaces
+    
+        // // Only spawn up to the amount of gold specified or available spaces
+        // for _ in 0..std::cmp::min(gold_count as usize, available_spaces.len()) {
+        //     if let Some(&position) = available_spaces.choose(&mut rng) {
+        //         self.souvenirs.push(Vec2 { x: position.0 as f32, y: position.1 as f32 });
+        //         // println!("Spawned gold at {:?}", position);
+        //     }
+        // }
+        // spawn gold at random locations
         for _ in 0..gold_count {
-            if let Some(&position) = available_spaces.choose(&mut rng) {
-                // Use `position` directly here
-                self.souvenirs.push(Vec2 { x: position.0 as f32, y: position.1 as f32 });
-            }
+            let x = rng.gen_range(0..W) as f32;
+            let y = rng.gen_range(0..H) as f32;
+            self.souvenirs.push(Vec2 { x, y });
         }
     }
     fn sprite_count(&self) -> usize {
-        let base_count = self.level().sprite_count() + self.enemies.len() + 2;
+        let base_count = self.level().sprite_count() + self.enemies.len() + 2 + 50;
         let heart_count = self.health as usize;
         base_count + heart_count
     }
@@ -433,11 +436,10 @@ impl Game {
             sprite_gfx[start_index_for_hearts + i as usize] = HEART;
         }
         for (index, souv_pos) in self.souvenirs.iter().enumerate() {
-            let sprite_index = self.level().sprite_count() + index + 1;
-            // let sprite_index = self.level.sprite_count() + index + 1; // Adjust index based on total_sprites_needed calculation
+            let sprite_index = start_index_for_hearts + self.health as usize + index;
             if let Some(souv_sprite) = sprite_posns.get_mut(sprite_index) {
-                souv_sprite.x = (souv_pos.x as f32) * TILE_SZ as f32 + TILE_SZ as f32 / 2.0;
-                souv_sprite.y = ((H as f32) - souv_pos.y as f32) * TILE_SZ as f32 - TILE_SZ as f32 / 2.0;
+                souv_sprite.x = souv_pos.x;
+                souv_sprite.y = H as f32 - souv_pos.y;  // Adjust this if necessary to match your coordinate system
                 souv_sprite.w = TILE_SZ as u16 / 3;
                 souv_sprite.h = TILE_SZ as u16 / 3;
                 souv_sprite.rot = 0.0;
