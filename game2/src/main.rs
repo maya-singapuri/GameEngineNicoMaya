@@ -5,9 +5,9 @@ use frenderer::{
     wgpu, Renderer,
 };
 use rand::Rng;
-mod geom;
-mod grid;
-use geom::*;
+mod geom2;
+mod grid2;
+use geom2::*;
 use std::fs::{self, OpenOptions};
 use std::io::{self, BufRead, BufReader, Write};
 use std::path::Path;
@@ -79,8 +79,8 @@ struct Pos {
     dir: Dir,
     alive: bool,
 }
-mod level;
-use level::Level;
+mod level2;
+use level2::Level;
 struct Game {
     current_level: usize,
     levels: Vec<Level>,
