@@ -252,7 +252,11 @@ impl Game {
                 alive: true,
             },
             camera,
-            souvenirs: vec![],
+            // souvenirs: vec![],
+            souvenirs: vec![
+                Vec2{ x: 1.0, y: 2.0 },
+                Vec2 { x: 3.0, y: 4.0 },
+            ],
             score: 0,
         };
         game.enter_level(player_start);
@@ -274,6 +278,7 @@ impl Game {
                     dir: Dir::S,
                     alive: true,
                 }),
+                // EntityType::Souvenir => {}
                 _ => {
                     // Ignore other types, such as Souvenirs, as they are handled separately or not applicable here.
                 }
