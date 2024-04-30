@@ -1,0 +1,3 @@
+[workspace]
+members=["game1", "game2", "engine"]
+resolver="2"
