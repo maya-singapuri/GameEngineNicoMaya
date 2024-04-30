@@ -21,6 +21,7 @@ enum EntityType {
     #[allow(dead_code)]
     Door(String, u16, u16),
     Souvenir,
+    Mark,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -60,6 +61,7 @@ const ENEMY: [SheetRegion; 4] = [
 ];
 
 const HEART: SheetRegion = SheetRegion::rect(525, 35, 8, 8);
+const MARK: SheetRegion = SheetRegion::rect(426, 83, 12, 20);
 
 // const SOUVENIR: SheetRegion = SheetRegion::rect(699, 193, 13, 11);
 const SOUVENIR: SheetRegion = SheetRegion::rect(525, 10, 8, 8);
@@ -374,6 +376,8 @@ impl Game {
         let sprites_used = self.level().render_into(frend, 0);
         let (sprite_posns, sprite_gfx) = frend.sprites_mut(0, sprites_used..);
 
+        let mut next_index = 0;
+
         for (enemy, (trf, uv)) in self
             .enemies
             .iter()
@@ -388,6 +392,7 @@ impl Game {
                 rot: 0.0,
             };
             *uv = ENEMY[enemy.dir as usize];
+            next_index += 1
         }
 
         let sprite_posns = &mut sprite_posns[self.enemies.len()..];
@@ -400,6 +405,7 @@ impl Game {
             rot: if self.health > 0 { 0.0 } else { 90.0 },
         };
         sprite_gfx[0] = PLAYER[self.player.dir as usize].with_depth(1);
+        next_index += 1;
         if self.attack_area.is_empty() {
             sprite_posns[1] = Transform::ZERO;
         } else {
@@ -448,17 +454,24 @@ impl Game {
                 *souv_sprite_gfx = SOUVENIR;
             }
         }
+        
+        for (entity_type, pos) in self.level().starts().iter() {
+            match entity_type {
+                EntityType::Mark => {
+                    sprite_posns[next_index] = Transform {
+                        w: 12, // width from the MARK SheetRegion
+                        h: 20, // height from the MARK SheetRegion
+                        x: pos.x,
+                        y: pos.y,
+                        rot: 0.0, // assuming no rotation
+                    };
+                    sprite_gfx[next_index] = MARK; // Use the defined sheet region
+                    next_index += 1;
+                },
+                _ => {} // Other entities, if any
+            }
+        }
 
-        // for (i, souvenir) in self.souvenirs.iter().enumerate() {
-        //     sprite_posns[start_index_for_hearts + self.health as usize + i] = Transform {
-        //         x: souvenir.x,
-        //         y: souvenir.y,
-        //         w: 13,
-        //         h: 11,
-        //         rot: 0.0,
-        //     };
-        //     sprite_gfx[start_index_for_hearts + self.health as usize + i] = SOUVENIR;
-        // }
     }
     fn simulate(&mut self, input: &Input, dt: f32) {
         let mut dx = 0.0;

@@ -160,6 +160,7 @@ impl Level {
                         let etype = match etype {
                             "player" => EntityType::Player,
                             "enemy" => EntityType::Enemy,
+                            "mark" => EntityType::Mark,
                             "door" => {
                                 let to_room = chunks.next().expect("Couldn't get dest room {line}");
                                 let to_x = u16::from_str(
