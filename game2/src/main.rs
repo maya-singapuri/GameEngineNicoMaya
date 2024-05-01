@@ -306,11 +306,11 @@ impl Game {
         //     }
         // }
         // spawn gold at random locations
-        for _ in 0..gold_count {
-            let x = rng.gen_range(0..W) as f32;
-            let y = rng.gen_range(0..H) as f32;
-            self.souvenirs.push(Vec2 { x, y });
-        }
+        // for _ in 0..gold_count {
+        //     let x = rng.gen_range(0..W) as f32;
+        //     let y = rng.gen_range(0..H) as f32;
+        //     self.souvenirs.push(Vec2 { x, y });
+        // }
     }
     fn sprite_count(&self) -> usize {
         let base_count = self.level().sprite_count() + self.enemies.len() + 2 + 50;
