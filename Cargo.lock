@@ -1370,6 +1370,7 @@ name = "platformer"
 version = "0.1.0"
 dependencies = [
  "assets_manager",
+ "engine",
  "frenderer",
  "getrandom",
  "image",

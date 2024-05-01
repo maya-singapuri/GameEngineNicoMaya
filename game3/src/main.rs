@@ -4,11 +4,11 @@
         sprites::{Camera2D, SheetRegion, Transform},
         wgpu, Renderer,
     };
-    mod geom;
-    mod grid;
-    use geom::*;
-    mod level;
-    use level::{EntityType, Level};
+    mod geom3;
+    mod grid3;
+    use geom3::*;
+    mod level3;
+    use level3::{EntityType, Level};
 
     const GRAVITY: f32 = -15.0;
     const GRAV_ACC: f32 = 300.0;
@@ -155,8 +155,8 @@
         // }
     }
 
-    mod animation;
-    use animation::Animation;
+    mod animation3;
+    use animation3::Animation;
 
     #[allow(unused)]
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
