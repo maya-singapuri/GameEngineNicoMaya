@@ -11,6 +11,12 @@ pub struct Rect {
     pub h: u16,
 }
 impl Rect {
+    pub const ZERO: Self = Rect {
+        x: 0.0,
+        y: 0.0,
+        w: 0,
+        h: 0,
+    };
     pub fn overlap(&self, other: Rect) -> Option<Vec2> {
         let x_overlap =
             (self.x + self.w as f32).min(other.x + other.w as f32) - self.x.max(other.x);
@@ -26,12 +32,12 @@ impl Rect {
             None
         }
     }
-    // pub fn origin(&self) -> Vec2 {
-    //     Vec2 {
-    //         x: self.x,
-    //         y: self.y,
-    //     }
-    // }
+    pub fn origin(&self) -> Vec2 {
+        Vec2 {
+            x: self.x,
+            y: self.y,
+        }
+    }
     pub fn is_empty(&self) -> bool {
         self.w == 0 || self.h == 0
     }
@@ -63,9 +69,9 @@ impl std::ops::AddAssign for Vec2 {
     }
 }
 impl Vec2 {
-    // pub fn mag_sq(&self) -> f32 {
-    //     self.x * self.x + self.y * self.y
-    // }
+    pub fn mag_sq(&self) -> f32 {
+        self.x * self.x + self.y * self.y
+    }
 
     pub fn normalize(&self) -> Vec2 {
         let mag = (self.x.powi(2) + self.y.powi(2)).sqrt();

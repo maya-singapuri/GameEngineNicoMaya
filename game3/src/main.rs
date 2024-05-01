@@ -4,9 +4,10 @@
         sprites::{Camera2D, SheetRegion, Transform},
         wgpu, Renderer,
     };
-    mod geom3;
+    // mod geom3;
     mod grid3;
-    use geom3::*;
+    // use geom3::*;
+    use engine::geom::*;
     mod level3;
     use level3::{EntityType, Level};
 
