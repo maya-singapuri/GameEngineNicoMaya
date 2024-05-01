@@ -5,9 +5,12 @@ use frenderer::{
     wgpu, Renderer,
 };
 use rand::Rng;
-mod geom2;
+use engine::geom::*;
+use engine::geom::Vec2;
+use engine::geom::Rect;
+// mod geom2;
 mod grid2;
-use geom2::*;
+// use geom2::*;
 use std::fs::{self, OpenOptions};
 use std::io::{self, BufRead, BufReader, Write};
 use std::path::Path;
