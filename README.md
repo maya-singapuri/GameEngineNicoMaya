@@ -17,4 +17,6 @@ Game 2: An adventure game that can prove a helpful pedagogical tool. Follow the 
 
 Game 3: Raindrops are falling on your head! But alas, you are aquaphobic. Dodge the raindrops before it is too late and you fall with them to the ground!
 
-To run each game, enter its directory and hit "cargo run." Navigate using the arrow keys on your keyboard. Enjoy!
+Navigate the gamespace using the arrow keys on your keyboard. 
+
+To run each game, enter its directory and hit "cargo run." Enjoy!
