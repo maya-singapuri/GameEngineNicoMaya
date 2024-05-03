@@ -4,12 +4,18 @@ use frenderer::{
     sprites::{Camera2D, SheetRegion, Transform},
     wgpu, Renderer,
 };
+use std::fs::{self, OpenOptions};
+use std::io::{self, BufRead, BufReader, Write};
+use std::path::Path;
+use std::thread;
+use std::time::Duration;
 // mod geom3;
 mod grid3;
 // use geom3::*;
 use engine::geom::*;
 mod level3;
 use level3::{EntityType, Level};
+
 
 const GRAVITY: f32 = -15.0;
 const GRAV_ACC: f32 = 300.0;
@@ -55,6 +61,7 @@ struct Game {
     last_spawn_x: f32,
     health: usize,
     game_over: bool,
+    game_start_time: std::time::Instant,
 }
 
 struct Enemy {
@@ -339,6 +346,7 @@ impl Game {
 
         let level_width = levels[current_level].width() as f32 * TILE_SZ as f32;
         let mut game = Game {
+            game_start_time: std::time::Instant::now(),
             current_level,
             camera,
             levels,
@@ -554,7 +562,9 @@ impl Game {
     }
    
     fn simulate(&mut self, input: &Input, dt: f32) {
-        if !self.game_over{
+        if self.game_over {
+            self.end_game();
+        } else {
             self.player.vel.x = MAX_SPEED * input.key_axis(Key::ArrowLeft, Key::ArrowRight);
             self.player.pos += self.player.vel * dt;
 
@@ -630,7 +640,7 @@ impl Game {
                 enemy.die();
                 self.health = self.health.saturating_sub(1);  
                 if self.health == 0 && !self.game_over {
-                    self.end_game();  
+                    self.game_over = true;
                     break;
                 }
             }
@@ -700,9 +710,75 @@ impl Game {
         //     self.camera.screen_pos[1].clamp(0.0, (lh * TILE_SZ).max(H) as f32 - H as f32);
 
     }
+
+    fn save_score(initials: &str, duration: u64) -> io::Result<()> {
+        let path = Path::new("leaderboard.txt");
+        let mut file = OpenOptions::new()
+            .write(true)
+            .append(true)
+            .create(true)
+            .open(path)?;
+
+        writeln!(file, "{},{}", initials, duration)
+    }
+
+    fn read_leaderboard() -> io::Result<Vec<(String, u64)>> {
+        let path = Path::new("leaderboard.txt");
+        let file = fs::File::open(path)?;
+        let buf_reader = BufReader::new(file);
+        let mut leaderboard = vec![];
+
+        for line in buf_reader.lines() {
+            let line = line?;
+            let parts: Vec<&str> = line.split(',').collect();
+            if parts.len() == 2 {
+                if let Ok(duration) = parts[1].parse::<u64>() {
+                    leaderboard.push((parts[0].to_string(), duration));
+                }
+            }
+        }
+
+        leaderboard.sort_by(|a, b| b.1.cmp(&a.1));
+
+        Ok(leaderboard)
+    }
+
+    fn display_leaderboard(leaderboard: &[(String, u64)]) {
+        println!("Leaderboard");
+        println!("----------------");
+        println!("Initials\t\tDuration (Seconds)");
+        for (initials, duration) in leaderboard {
+            println!("{}\t\t\t{}", initials, duration);
+        }
+    }
+
+    fn prompt_for_initials() -> String {
+        println!("Enter your initials:");
+        let mut initials = String::new();
+        io::stdin().read_line(&mut initials).expect("Failed to read line");
+        initials.trim().to_uppercase()
+    }
     
     fn end_game(&mut self) {
         println!("Game Over!");
-        self.game_over = true;
+        let duration = self.game_start_time.elapsed().as_secs();
+        println!("You survived for {} seconds.", duration);
+        
+        let initials = Self::prompt_for_initials();
+        if let Err(e) = Self::save_score(&initials, duration) {
+            eprintln!("Error saving score: {}", e);
+        }
+    
+        match Self::read_leaderboard() {
+            Ok(leaderboard) => {
+                Self::display_leaderboard(&leaderboard);
+                std::process::exit(0);
+            },
+            Err(e) => {
+                eprintln!("Error reading leaderboard: {}", e);
+                std::process::exit(1);
+            }
+        }
+
     }
 }
