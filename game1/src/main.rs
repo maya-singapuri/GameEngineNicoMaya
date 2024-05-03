@@ -141,7 +141,7 @@ fn main() {
                                 target.exit();
                             }
                         }
-                    } else if game.start_time.elapsed().as_secs() >= 60 {
+                    } else if game.start_time.elapsed().as_secs() >= 30 {
                         println!("You Win! You collected {} gold", game.score);
                         handle_win(game.score);
                         target.exit();
