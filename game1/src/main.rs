@@ -15,8 +15,8 @@ use rand::seq::SliceRandom;
 use rand::Rng;
 
 use engine::geom::*;
-use engine::level;
 use engine::grid;
+use engine::level;
 use engine::EntityType;
 
 // #[derive(Debug, PartialEq, Eq)]
@@ -172,7 +172,9 @@ fn handle_win(score: u32) {
 fn prompt_for_initials() -> String {
     println!("Enter your initials:");
     let mut initials = String::new();
-    io::stdin().read_line(&mut initials).expect("Failed to read line");
+    io::stdin()
+        .read_line(&mut initials)
+        .expect("Failed to read line");
     initials.trim().to_uppercase()
 }
 
@@ -305,10 +307,9 @@ impl Game {
                 _ => {
                     // Ignore other types, such as Gold, as they are handled separately or not applicable here.
                 }
-            }                      
+            }
         }
     }
-
 
     fn spawn_gold(&mut self, gold_count: i32) {
         let open_spaces = self.level.get_open_spaces();
@@ -318,7 +319,11 @@ impl Game {
         let available_spaces: Vec<_> = open_spaces
             .into_iter()
             .filter(|pos| {
-                self.player.pos != Vec2 { x: pos.0 as f32, y: pos.1 as f32 }
+                self.player.pos
+                    != Vec2 {
+                        x: pos.0 as f32,
+                        y: pos.1 as f32,
+                    }
             })
             .collect();
 
@@ -326,10 +331,12 @@ impl Game {
         for _ in 0..gold_count {
             if let Some(&position) = available_spaces.choose(&mut rng) {
                 // Use `position` directly here
-                self.golds.push(Vec2 { x: position.0 as f32, y: position.1 as f32 });
+                self.golds.push(Vec2 {
+                    x: position.0 as f32,
+                    y: position.1 as f32,
+                });
             }
         }
-
     }
 
     fn spawn_enemies(&mut self) {
@@ -371,13 +378,17 @@ impl Game {
         let gold_size = 0.25; // Adjust this as necessary
 
         // Detect golds to remove
-        let to_remove: Vec<Vec2> = self.golds.iter().filter_map(|gold_pos| {
-            if Self::check_collision(self.player.pos, player_size, *gold_pos, gold_size) {
-                Some(*gold_pos)
-            } else {
-                None
-            }
-        }).collect();
+        let to_remove: Vec<Vec2> = self
+            .golds
+            .iter()
+            .filter_map(|gold_pos| {
+                if Self::check_collision(self.player.pos, player_size, *gold_pos, gold_size) {
+                    Some(*gold_pos)
+                } else {
+                    None
+                }
+            })
+            .collect();
 
         // Remove golds that collided
         self.golds.retain(|gold_pos| !to_remove.contains(gold_pos));
@@ -387,22 +398,20 @@ impl Game {
             self.spawn_gold(1);
             self.score += 1;
         }
-
     }
 
-    
     fn check_collision(a_pos: Vec2, a_size: f32, b_pos: Vec2, b_size: f32) -> bool {
         let a_half_size = a_size / 2.0;
         let b_half_size = b_size / 2.0;
-    
+
         // Check for overlap in the x-axis
         let x_overlap = (a_pos.x - b_pos.x).abs() < (a_half_size + b_half_size);
         // Check for overlap in the y-axis
         let y_overlap = (a_pos.y - b_pos.y).abs() < (a_half_size + b_half_size);
-    
+
         x_overlap && y_overlap
     }
-    
+
     fn calculate_total_sprites_needed(&self) -> usize {
         let level_tiles = self.level.grid_width() * self.level.grid_height();
         let entity_count = 1 + self.enemies.len() + self.golds.len();
@@ -471,12 +480,14 @@ impl Game {
             let sprite_index = self.level.sprite_count() + index + 1; // Adjust index based on total_sprites_needed calculation
             if let Some(gold_sprite) = sprite_posns.get_mut(sprite_index) {
                 gold_sprite.x = (gold_pos.x as f32) * TILE_SZ as f32 + TILE_SZ as f32 / 2.0;
-                gold_sprite.y = ((self.level.grid_height() as f32) - gold_pos.y as f32) * TILE_SZ as f32 - TILE_SZ as f32 / 2.0;
+                gold_sprite.y = ((self.level.grid_height() as f32) - gold_pos.y as f32)
+                    * TILE_SZ as f32
+                    - TILE_SZ as f32 / 2.0;
                 gold_sprite.w = TILE_SZ as u16 / 3;
                 gold_sprite.h = TILE_SZ as u16 / 3;
                 gold_sprite.rot = 0.0;
             }
-    
+
             if let Some(gold_sprite_gfx) = sprite_gfx.get_mut(sprite_index) {
                 *gold_sprite_gfx = GOLD;
             }
@@ -485,7 +496,6 @@ impl Game {
 
     fn simulate(&mut self, input: &Input, dt: f32) {
         if self.is_player_alive {
-
             let speed = 5.0;
 
             let dx = input.key_axis(Key::ArrowLeft, Key::ArrowRight);
@@ -499,7 +509,6 @@ impl Game {
 
             self.frame_counter += 1;
             for enemy in &mut self.enemies {
-
                 // make enemy point towards player
                 let difference_in_x = self.player.pos.x - enemy.pos.x;
                 let difference_in_y = self.player.pos.y - enemy.pos.y;
@@ -522,7 +531,6 @@ impl Game {
                 }
 
                 let new_x = (enemy.pos.x as f32 + enemy.dir.x as f32 * enemy_speed * enemy_dt)
-
                     .round() as f32;
                 let new_y = (enemy.pos.y as f32 + enemy.dir.y as f32 * enemy_speed * enemy_dt)
                     .round() as f32;
