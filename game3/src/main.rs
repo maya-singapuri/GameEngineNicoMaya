@@ -16,7 +16,6 @@ use engine::geom::*;
 mod level3;
 use level3::{EntityType, Level};
 
-
 const GRAVITY: f32 = -15.0;
 const GRAV_ACC: f32 = 300.0;
 const WALK_ACC: f32 = 180.0;
@@ -128,9 +127,9 @@ impl Player {
         let shrink_factor = if self.shrunk { 0.5 } else { 1.0 };
         if game_over {
             Transform {
-                w: (36.0 * shrink_factor) as u16, 
+                w: (36.0 * shrink_factor) as u16,
                 h: (36.0 * shrink_factor) as u16,
-                x: self.pos.x + 2.0, 
+                x: self.pos.x + 2.0,
                 y: self.pos.y - 1.0,
                 rot: 91.0,
             }
@@ -503,7 +502,8 @@ impl Game {
     fn spawn_enemy(&mut self) {
         let level_width = self.level().width() as f32 * TILE_SZ as f32;
 
-        let mut new_x_position = self.last_spawn_x + MIN_SPAWN_DISTANCE + rand::random::<f32>() * 100.0; // Adding some random value
+        let mut new_x_position =
+            self.last_spawn_x + MIN_SPAWN_DISTANCE + rand::random::<f32>() * 100.0; // Adding some random value
 
         if new_x_position > level_width {
             new_x_position -= level_width;
@@ -511,8 +511,14 @@ impl Game {
 
         self.enemies.push(Enemy {
             dead: false,
-            pos: Vec2 { x: new_x_position, y: SPAWN_HEIGHT },
-            vel: Vec2 { x: 0.0, y: FALLING_VELOCITY },
+            pos: Vec2 {
+                x: new_x_position,
+                y: SPAWN_HEIGHT,
+            },
+            vel: Vec2 {
+                x: 0.0,
+                y: FALLING_VELOCITY,
+            },
             dir: Dir::W,
         });
 
@@ -547,7 +553,8 @@ impl Game {
         sprite_posns[0] = self.player.trf(self.game_over);
         sprite_gfx[0] = self.player.anim.sample(&self.animations);
 
-        let start_x = 20.0 + (self.camera.screen_size[0] - self.health as f32 * (HEART.w as f32 + 10.0)) / 2.0;
+        let start_x = 20.0
+            + (self.camera.screen_size[0] - self.health as f32 * (HEART.w as f32 + 10.0)) / 2.0;
         for i in 0..self.health {
             let heart_transform = Transform {
                 x: start_x + i as f32 * (HEART.w as f32 + 2.5),
@@ -560,7 +567,7 @@ impl Game {
             sprite_gfx[i + 1] = HEART;
         }
     }
-   
+
     fn simulate(&mut self, input: &Input, dt: f32) {
         if self.game_over {
             self.end_game();
@@ -599,8 +606,8 @@ impl Game {
                     Dir::W => AnimationKey::PlayerLeftJumpFall,
                 };
                 self.player.anim.play(fall_anim, false);
-            }        
-                
+            }
+
             self.player.anim.tick(dt, self.game_over);
         }
 
@@ -609,7 +616,7 @@ impl Game {
         self.player.pos.x = self.player.pos.x.clamp(
             0.0,
             lw as f32 * TILE_SZ as f32 - self.player.rect().w as f32 - 130.0,
-        );            
+        );
         self.player.pos.y = self.player.pos.y.clamp(
             0.0,
             lh as f32 * TILE_SZ as f32 * H as f32 - self.player.rect().h as f32 / 2.0,
@@ -618,7 +625,7 @@ impl Game {
 
         if input.is_key_pressed(Key::Space) && !self.player.shrunk {
             self.player.shrunk = true;
-            self.player.shrink_timer = 0.25; 
+            self.player.shrink_timer = 0.25;
         }
 
         if self.player.shrunk {
@@ -632,13 +639,13 @@ impl Game {
         self.spawn_timer -= dt;
         if self.spawn_timer <= 0.0 {
             self.spawn_enemy();
-            self.spawn_timer = SPAWN_INTERVAL; 
+            self.spawn_timer = SPAWN_INTERVAL;
         }
 
         for enemy in self.enemies.iter_mut() {
             if enemy.collides_with(&self.player) {
                 enemy.die();
-                self.health = self.health.saturating_sub(1);  
+                self.health = self.health.saturating_sub(1);
                 if self.health == 0 && !self.game_over {
                     self.game_over = true;
                     break;
@@ -647,7 +654,7 @@ impl Game {
             if enemy.dead {
                 continue;
             }
-            
+
             enemy.pos += enemy.vel * dt;
 
             //enemy.anim.tick(dt);
@@ -708,7 +715,6 @@ impl Game {
         //     self.camera.screen_pos[0].clamp(0.0, (lw * TILE_SZ).max(W) as f32 - W as f32);
         // self.camera.screen_pos[1] =
         //     self.camera.screen_pos[1].clamp(0.0, (lh * TILE_SZ).max(H) as f32 - H as f32);
-
     }
 
     fn save_score(initials: &str, duration: u64) -> io::Result<()> {
@@ -755,30 +761,31 @@ impl Game {
     fn prompt_for_initials() -> String {
         println!("Enter your initials:");
         let mut initials = String::new();
-        io::stdin().read_line(&mut initials).expect("Failed to read line");
+        io::stdin()
+            .read_line(&mut initials)
+            .expect("Failed to read line");
         initials.trim().to_uppercase()
     }
-    
+
     fn end_game(&mut self) {
         println!("Game Over!");
         let duration = self.game_start_time.elapsed().as_secs();
         println!("You survived for {} seconds.", duration);
-        
+
         let initials = Self::prompt_for_initials();
         if let Err(e) = Self::save_score(&initials, duration) {
             eprintln!("Error saving score: {}", e);
         }
-    
+
         match Self::read_leaderboard() {
             Ok(leaderboard) => {
                 Self::display_leaderboard(&leaderboard);
                 std::process::exit(0);
-            },
+            }
             Err(e) => {
                 eprintln!("Error reading leaderboard: {}", e);
                 std::process::exit(1);
             }
         }
-
     }
 }
