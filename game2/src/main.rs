@@ -1,20 +1,20 @@
 use assets_manager::{asset::Png, AssetCache};
+use engine::geom::Rect;
+use engine::geom::Vec2;
+use engine::geom::*;
 use frenderer::{
     input::{Input, Key},
     sprites::{Camera2D, SheetRegion, Transform},
     wgpu, Renderer,
 };
 use rand::Rng;
-use engine::geom::*;
-use engine::geom::Vec2;
-use engine::geom::Rect;
 // mod geom2;
 mod grid2;
 // use geom2::*;
+use rand::seq::SliceRandom;
 use std::fs::{self, OpenOptions};
 use std::io::{self, BufRead, BufReader, Write};
 use std::path::Path;
-use rand::seq::SliceRandom;
 
 #[derive(Debug, PartialEq, Eq)]
 enum EntityType {
@@ -295,12 +295,23 @@ impl Game {
         // println!("Spawning {} golds", gold_count);
         let open_spaces = self.level().get_open_spaces();
         let mut rng = rand::thread_rng();
-    
+
         let available_spaces: Vec<_> = open_spaces
             .into_iter()
-            .filter(|pos| !self.enemies.iter().any(|e| Vec2 { x: pos.0 as f32, y: pos.1 as f32 } == e.pos) && self.player.pos != Vec2 { x: pos.0 as f32, y: pos.1 as f32 })
+            .filter(|pos| {
+                !self.enemies.iter().any(|e| {
+                    Vec2 {
+                        x: pos.0 as f32,
+                        y: pos.1 as f32,
+                    } == e.pos
+                }) && self.player.pos
+                    != Vec2 {
+                        x: pos.0 as f32,
+                        y: pos.1 as f32,
+                    }
+            })
             .collect();
-    
+
         // // Only spawn up to the amount of gold specified or available spaces
         // for _ in 0..std::cmp::min(gold_count as usize, available_spaces.len()) {
         //     if let Some(&position) = available_spaces.choose(&mut rng) {
@@ -343,16 +354,21 @@ impl Game {
         let gold_size = 0.25; // Adjust this as necessary
 
         // Detect golds to remove
-        let to_remove: Vec<Vec2> = self.souvenirs.iter().filter_map(|gold_pos| {
-            if Self::check_collision(self.player.pos, player_size, *gold_pos, gold_size) {
-                Some(*gold_pos)
-            } else {
-                None
-            }
-        }).collect();
+        let to_remove: Vec<Vec2> = self
+            .souvenirs
+            .iter()
+            .filter_map(|gold_pos| {
+                if Self::check_collision(self.player.pos, player_size, *gold_pos, gold_size) {
+                    Some(*gold_pos)
+                } else {
+                    None
+                }
+            })
+            .collect();
 
         // Remove golds that collided
-        self.souvenirs.retain(|gold_pos| !to_remove.contains(gold_pos));
+        self.souvenirs
+            .retain(|gold_pos| !to_remove.contains(gold_pos));
 
         // Spawn a new gold if needed
         if self.souvenirs.len() < 50 {
@@ -363,12 +379,12 @@ impl Game {
     fn check_collision(a_pos: Vec2, a_size: f32, b_pos: Vec2, b_size: f32) -> bool {
         let a_half_size = a_size / 2.0;
         let b_half_size = b_size / 2.0;
-    
+
         // Check for overlap in the x-axis
         let x_overlap = (a_pos.x - b_pos.x).abs() < (a_half_size + b_half_size);
         // Check for overlap in the y-axis
         let y_overlap = (a_pos.y - b_pos.y).abs() < (a_half_size + b_half_size);
-    
+
         x_overlap && y_overlap
     }
     fn render(&mut self, frend: &mut Renderer) {
@@ -448,7 +464,7 @@ impl Game {
             let sprite_index = start_index_for_hearts + self.health as usize + index;
             if let Some(souv_sprite) = sprite_posns.get_mut(sprite_index) {
                 souv_sprite.x = souv_pos.x;
-                souv_sprite.y = H as f32 - souv_pos.y;  // Adjust this if necessary to match your coordinate system
+                souv_sprite.y = H as f32 - souv_pos.y; // Adjust this if necessary to match your coordinate system
                 souv_sprite.w = TILE_SZ as u16 / 3;
                 souv_sprite.h = TILE_SZ as u16 / 3;
                 souv_sprite.rot = 0.0;
@@ -457,7 +473,7 @@ impl Game {
                 *souv_sprite_gfx = SOUVENIR;
             }
         }
-        
+
         for (entity_type, pos) in self.level().starts().iter() {
             match entity_type {
                 EntityType::Mark => {
@@ -470,11 +486,9 @@ impl Game {
                     };
                     sprite_gfx[next_index] = MARK; // Use the defined sheet region
                     next_index += 1;
-                },
-                _ => {} // Other entities, if any
+                }
             }
         }
-
     }
     fn simulate(&mut self, input: &Input, dt: f32) {
         let mut dx = 0.0;
@@ -546,7 +560,7 @@ impl Game {
                     w: 0,
                     h: 0,
                 };
-            }    
+            }
         }
         // Update the camera to center on the player
         self.camera.screen_pos[0] = self.player.pos.x - W as f32 / 2.0;
